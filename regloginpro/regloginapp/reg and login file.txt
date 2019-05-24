@@ -1,0 +1,311 @@
+step1:	project name:	regloginpro
+step2:	app name:		regloginapp
+step3:	database name:	reglogin8amdb
+step4:	congfigure databae in settings.py file
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'reglogin8amdb',
+        'USER':'root',
+        'PASSWORD':'root',
+    }
+}
+
+step5:	open models.py file 
+from django.db import models
+
+class RegistrationData(models.Model):
+    first_name = models.CharField(max_length=20)
+    last_name = models.CharField(max_length=20)
+    username = models.CharField(max_length=20)
+    password1 = models.CharField(max_length=20)
+    password2 = models.CharField(max_length=20)
+    email = models.EmailField(max_length=50)
+    number = models.BigIntegerField()
+
+step6:	create forms.py file and create form 
+from django import forms
+class RegistrationForm(forms.Form):
+    first_name = forms.CharField(
+        label="Enter First Name",
+        widget=forms.TextInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'First Name'
+            }
+        )
+    )
+    last_name = forms.CharField(
+        label="Enter Last Name",
+        widget=forms.TextInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'Last Name'
+            }
+        )
+    )
+    username = forms.CharField(
+        label="Enter User Name",
+        widget=forms.TextInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'UserName'
+            }
+        )
+    )
+    password1 = forms.CharField(
+        label="Enter Password",
+        widget=forms.PasswordInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'Password'
+            }
+        )
+    )
+    password2 = forms.CharField(
+        label="Enter Confirm Password",
+        widget=forms.PasswordInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'Confirm Password'
+            }
+        )
+    )
+    email = forms.EmailField(
+        label="Enter Your Email",
+        widget=forms.EmailInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'Email Id'
+            }
+        )
+    )
+    number = forms.IntegerField(
+        label="Enter Your Number",
+        widget=forms.NumberInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'Mobile Number'
+            }
+        )
+    )
+
+class LoginForm(forms.Form):
+    username= forms.CharField(
+        label='Enter Your YourName',
+        widget=forms.TextInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'UserName'
+            }
+        )
+    )
+    password1 = forms.CharField(
+        label='Enter Your Password',
+        widget=forms.PasswordInput(
+            attrs={
+                'class':'form-control',
+                'placeholder':'Password'
+            }
+        )
+    )
+
+step7:	open views.py file and write views
+from django.shortcuts import render
+from .models import RegistrationData
+from .forms import RegistrationForm,LoginForm
+from django.http.response import HttpResponse
+
+def home(request):
+    return render(request,'reglogin.html')
+
+def registration(request):
+    if request.method=="POST":
+        form = RegistrationForm(request.POST)
+        if form.is_valid():
+            first_name = request.POST.get('first_name','')
+            last_name = request.POST.get('last_name','')
+            username = request.POST.get('username','')
+            password1 = request.POST.get('password1','')
+            password2 = request.POST.get('password2','')
+            email = request.POST.get('email','')
+            number = request.POST.get('number','')
+            data = RegistrationData(
+                first_name=first_name,
+                last_name=last_name,
+                username=username,
+                password1=password1,
+                password2=password2,
+                email=email,
+                number=number
+            )
+            data.save()
+            form = RegistrationForm()
+            return render(request,'registration.html',{'form':form})
+    else:
+        form = RegistrationForm()
+        return render(request,'registration.html',{'form':form})
+
+def login(request):
+    if request.method=="POST":
+        lform = LoginForm(request.POST)
+        if lform.is_valid():
+            username = request.POST.get('username','')
+            password1 = request.POST.get('password1','')
+
+            user = RegistrationData.objects.filter(username=username)
+            pwd = RegistrationData.objects.filter(password1=password1)
+
+            if user and pwd:
+                return HttpResponse('Valid Details')
+            else:
+                return HttpResponse('Invalid Details')
+    else:
+        lform = LoginForm()
+        return render(request,'login.html',{'lform':lform})
+
+step8: create reglogin.html file 
+<html>
+<head>
+    <title>Registration And Login Forms</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+    #div1{
+        text-align: center;
+        font-size: 50px;
+    }
+    h1{
+        text-align: center;
+        font-size: 70px;
+        margin: 30px 300px 40px 300px;
+    }
+    body{
+        background-color:aquamarine;
+    }
+</style>
+</head>
+<body>
+<h1 class="bg-primary text-white">Welcome to Durgasoft</h1>
+<div id="div1">
+<a href="/registration/">Registration</a><br>
+<a href="/login/">Login</a>
+</div>
+</body>
+</html>
+
+
+step9:	create registration.html file 
+<html>
+<head>
+    <title>Registration Data</title>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+    form{
+        border: 2px red solid;
+        padding: 20px;
+        border-radius: 20px;
+        margin-top: 30px;
+        background-color: orchid;
+    }
+    h3{
+        text-align: center;
+    }
+    body{
+        background-color: dodgerblue;
+    }
+</style>
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-5">
+            <form method="POST">
+                <h3 class="bg-primary text-white">Please Register here.....</h3>
+                {% csrf_token %}
+                {{ form }}<br>
+                <center>
+                <input type="submit" value="Submit" class="btn btn-success">
+                <input type="reset" value="Clear" class="btn btn-danger">
+                </center>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+step10:	create login.html file 
+<html>
+<head>
+    <title>Login Form</title>
+    <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<style>
+    form{
+        border: 2px red solid;
+        padding: 20px;
+        border-radius: 20px;
+        margin-top: 30px;
+        background-color: orchid;
+    }
+    h3{
+        text-align: center;
+    }
+    body{
+        background-color: dodgerblue;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-5">
+            <form method="POST">
+                <h3 class="bg-primary text-white">Please Login here...</h3>
+                {% csrf_token %}
+                {{ lform }}<br>
+                <center>
+                <input type="submit" value="Submit" class="btn btn-success">
+                <input type="reset" value="Clear" class="btn btn-danger">
+                </center>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+
+step11: open urls.py file 
+from django.conf.urls import url
+from django.contrib import admin
+from regloginapp import views
+urlpatterns = [
+    url(r'^admin/', admin.site.urls),
+    url(r'^$',views.home),
+    url(r'^registration/',views.registration),
+    url(r'^login/',views.login)
+]
+
+step12:	run makemigrations, migrate, runserver commands
